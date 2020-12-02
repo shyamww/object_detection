@@ -1,7 +1,7 @@
 # object_detection
 
-OpenCv
-Numpy
-Keyboard
-pip 20.2.4
+#OpenCv
+#Numpy
+#Keyboard
+#pip 20.2.4
 
