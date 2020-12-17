@@ -1,16 +1,16 @@
 import sys
 import cv2
 import numpy as np
-
+# import keyboard
 # import end
-
+import os
 #th import
 import threading
 from tkinter import *
 import tkinter as tk
 root = Tk()
 root.title('Hello python')
-root.geometry("500x780+1450+100")
+root.geometry("500x780+1450+0")
 root.config(bg="SlateBlue2")#tan2
 
 root.t0=Entry(font=("arial",25,"bold"),bg="white", bd =5, justify='center')
@@ -25,7 +25,21 @@ def fn_val_pause_play():
     global stop_count
     if stop_count == 1000:
         # sys.exit()
-        return
+                        # if stop_count == 1000:
+                    # sys.exit()
+        # print("--------------END--------------")
+
+        # cv2.destroyAllWindows() 
+
+        # end_img=cv2.read('end.png')
+        # cv2.imshow('Image', 'end.png')
+        img1 = cv2.imread('/home/shyam/Desktop/img2/helmet/end_1.jpg')
+        # fn, img1 = cap.read()
+        cv2.imshow('Image', img1)
+        cv2.waitKey(1000)
+        cv2.destroyAllWindows() 
+
+        # return
     
     if pause_play ==0:
         pause_play=1
@@ -37,7 +51,7 @@ def fn_val_pause_play():
         root.b9["bg"]="tan2"
 
 root.b9=Button(root,width=10,text='pause',command= fn_val_pause_play, font=("arial",20,"bold"),bg="SeaGreen1")
-root.b9.place(x=155,y=400)
+root.b9.place(x=275,y=320)
 
 
 # print(type(root))
@@ -137,9 +151,9 @@ def findObjects(outputs,img,ind):
      
     indices = cv2.dnn.NMSBoxes(bbox, confs, confThreshold, nmsThreshold)
 
-    print(str(len(indices))+ " " +classNames[ind])
+    # print(str(len(indices))+ " " +classNames[ind])
     count_object=len(indices)
-    print()
+    # print()
       
     for i in indices:
         i = i[0]
@@ -202,7 +216,6 @@ def findObjects_helmet(outputs,img):
             scores = det[5:]  
                
             classId = np.argmax(scores)
-            
             confidence = scores[classId]
           
             if confidence > confThreshold_helmet and classId < 1:
@@ -216,10 +229,10 @@ def findObjects_helmet(outputs,img):
                 confs.append(float(confidence))
             
     indices = cv2.dnn.NMSBoxes(bbox, confs, confThreshold_helmet, nmsThreshold_helmet)
-
-    print(str(len(indices))+ " Helmet" )
+    # print(indices)
+    # print(str(len(indices))+ " Helmet" )
     count_object=len(indices)
-    print()
+    # print()
     
     for i in indices:
         i = i[0]
@@ -227,10 +240,253 @@ def findObjects_helmet(outputs,img):
         x, y, w, h = box[0], box[1], box[2], box[3]
         
         if classIds[i]==0:
-            cv2.rectangle(img, (x, y), (x+w,y+h), (0, 255, 255), 2)
-            
+            cv2.rectangle(img, (x, y), (x+w,y+h), (0,255, 0), 2)
+            # print(classNames_helmet[classIds[i]].upper())
             cv2.putText(img,f'{classNames_helmet[classIds[i]].upper()} {int(confs[i]*100)}%',
-                    (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+                    (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255, 0), 2)
+
+        # if ((classIds[i]==0) and (ck==7)):
+        #     # x=int(x/2)
+        #     # y=int(y/2)
+        #     w=int(w/2)
+        #     h=int(h/2)
+        #     cv2.rectangle(img, (x, y), (x+w,y+h), (255, 255, 255), 2)
+            
+        #     cv2.putText(img,f'{classNames_helmet[classIds[i]].upper()} {int(confs[i]*100)}%',
+        #             (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#showing all
+def findObjects_all(outputs,img,indx,bbox1,classIds1,confs1):
+    # print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+    hT, wT, cT = img.shape
+    bbox = []
+    classIds = []
+    confs = []
+    ck = []
+    for i in range(80):
+        ck.append(0)
+    for output in outputs:
+        
+
+        # ck = []
+        # for i in range(80):
+        #     ck.append(0)
+        for det in output:
+            
+            # print("ajhsdjsa")
+            scores = det[5:]  
+                             
+            classId = np.argmax(scores)
+            
+            confidence = scores[classId]
+            if confidence > confThreshold and classId < 8:
+              
+                ck[classId]=ck[classId]+1
+                # print(str(classId) + " " + str(ck[classId]) +" "+ str(classNames[classId]))
+                
+                
+                w,h = int(det[2]*wT) , int(det[3]*hT)
+                x,y = int((det[0]*wT)-w/2) , int((det[1]*hT)-h/2)
+                bbox.append([x,y,w,h])
+                classIds.append(classId)
+                confs.append(float(confidence))
+
+ 
+    for x in range(len(ck)):
+        if ck[x]>0:
+            print(str(ck[x])+ " " + classNames[x])
+    print()
+    
+    # print(len(bbox))
+    indices = cv2.dnn.NMSBoxes(bbox, confs, confThreshold, nmsThreshold)
+    
+    for i in indices:
+        i = i[0]
+        box = bbox[i]
+        x, y, w, h = box[0], box[1], box[2], box[3]
+        # print(x,y,w,h)
+        # print(type(classNames[classIds[i]].upper()))
+        if classIds[i]==0:
+            cv2.rectangle(img, (x, y), (x+w,y+h), (255, 255, 0), 2)
+            cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i]*100)}%',
+                    (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+        if classIds[i]==1:
+            cv2.rectangle(img, (x, y), (x+w,y+h), (255, 0 , 255), 2)
+            cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i]*100)}%',
+                    (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0 , 255), 2)
+        if classIds[i]==2:
+            cv2.rectangle(img, (x, y), (x+w,y+h), (0, 255 , 255), 2)
+            cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i]*100)}%',
+                    (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6,(0, 255 , 255), 2)
+        if classIds[i]==3:
+            cv2.rectangle(img, (x, y), (x+w,y+h), (255,0,0), 2)
+            cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i]*100)}%',
+                    (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,0,0), 2)
+        if classIds[i]==5:
+            cv2.rectangle(img, (x, y), (x+w,y+h), (0,0,255), 2)
+            cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i]*100)}%',
+                    (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255), 2)
+        if classIds[i]==7:
+                    cv2.rectangle(img, (x, y), (x+w,y+h), (0,255,0), 2)
+                    cv2.putText(img,f'{classNames[classIds[i]].upper()} {int(confs[i]*100)}%',
+                            (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
+
+
+    for i in indx:
+        i = i[0]
+        print(i)
+        print(len(bbox))
+        box = bbox1[i]
+        x, y, w, h = box[0], box[1], box[2], box[3]
+        # print(x,y,w,h)
+        if classIds1[i]==0:
+            x=x+int(w/4)
+            w=int(w/2)
+            h=int(h/4)
+            cv2.rectangle(img, (x, y), (x+w,y+h), (0,255, 0), 2)
+            cv2.putText(img,f'{"HELMET"} {int(confs1[i]*100)}%',
+                    (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255, 0), 2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+def findObjects_helmet_all(outputs,img):
+    global ck
+    global count_object
+    global stop_count
+    hT, wT, cT = img.shape
+    bbox = []
+    classIds = []
+    confs = []
+    cn = 0
+    
+    for output in outputs:
+        
+        for det in output:
+            
+            scores = det[5:]  
+               
+            classId = np.argmax(scores)
+            confidence = scores[classId]
+          
+            if confidence > confThreshold_helmet and classId == 0:
+              
+                cn=cn+1
+                
+                w,h = int(det[2]*wT) , int(det[3]*hT)
+                x,y = int((det[0]*wT)-w/2) , int((det[1]*hT)-h/2)
+                bbox.append([x,y,w,h])
+                classIds.append(classId)
+                confs.append(float(confidence))
+            
+    indices = cv2.dnn.NMSBoxes(bbox, confs, confThreshold_helmet, nmsThreshold_helmet)
+    # print(indices)
+    # print(str(len(indices))+ " Helmet" )
+    count_object=len(indices)
+    return indices,bbox,classIds,confs
+    # print()
+    
+    # for i in indices:
+    #     i = i[0]
+    #     box = bbox[i]
+    #     x, y, w, h = box[0], box[1], box[2], box[3]
+        
+    #     if classIds[i]==0:
+    #         cv2.rectangle(img, (x, y), (x+w,y+h), (255, 255, 255), 2)
+    #         # print(classNames_helmet[classIds[i]].upper())
+    #         cv2.putText(img,f'{classNames_helmet[classIds[i]].upper()} {int(confs[i]*100)}%',
+    #                 (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
+        # if ((classIds[i]==0) and (ck==7)):
+        #     # x=int(x/2)
+        #     # y=int(y/2)
+        #     w=int(w/2)
+        #     h=int(h/2)
+        #     cv2.rectangle(img, (x, y), (x+w,y+h), (255, 255, 255), 2)
+            
+        #     cv2.putText(img,f'{classNames_helmet[classIds[i]].upper()} {int(confs[i]*100)}%',
+        #             (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#end showing all
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def fn_while_1():
     global ck
     global stop_count
@@ -238,7 +494,7 @@ def fn_while_1():
     #TAKING THE NAME OF THE VIDEO FILE FROM THE FILE
     file1 = open('myfile.txt', 'r')
     line = file1.readline() 
-    print("Got: "+ line)
+    # print("Got: "+ line)
 
 
     # video_file_name="9.mp4"
@@ -257,6 +513,14 @@ def fn_while_1():
         # print(img.shape)
         if frameId % 2 == 0:
             blob = cv2.dnn.blobFromImage(img, 1 / 255, (whT, whT), [0, 0, 0], 1, crop=False)
+           
+            width = 1350
+            height = 740 # keep original height
+            dim = (width, height)
+            cv2.namedWindow('Image')        # Create a named window
+            
+
+            cv2.moveWindow('Image', 0,0)
             if ck < 6 and ck>=0:
                 net.setInput(blob)
                 layerNames = net.getLayerNames()
@@ -264,7 +528,9 @@ def fn_while_1():
                 outputNames = [(layerNames[i[0] - 1]) for i in net.getUnconnectedOutLayers()]
                 outputs = net.forward(outputNames)
                 findObjects(outputs,img,ck)
-                cv2.imshow('Image',img)      
+                # cv2.imshow('Image',img) 
+                resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA) 
+                cv2.imshow('Image',resized)    
             elif ck == 6:
                 net_helmet.setInput(blob)
                 layerNames = net_helmet.getLayerNames()            
@@ -274,9 +540,67 @@ def fn_while_1():
                 
                 findObjects_helmet(outputs,img)
                 
-                cv2.imshow('Image',img)
+                # cv2.imshow('Image',img)
+                resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+                cv2.imshow('Image',resized)
+            elif ck == 7:
+                net.setInput(blob)
+                layerNames = net.getLayerNames()
+                
+                outputNames = [(layerNames[i[0] - 1]) for i in net.getUnconnectedOutLayers()]
+                outputs = net.forward(outputNames)
+                
+                
+                indx,bbox1,classIds1,confs1=findObjects_helmet_all(outputs,img) # call helmet function to detect helmet in the frame
+                findObjects_all(outputs,img,indx,bbox1,classIds1,confs1)
+
+                # cv2.imshow('Image',img) 
+                resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA) 
+                cv2.imshow('Image',resized)    
+
+            elif ck==10:
+                resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+                cv2.imshow('Image',resized)
+                if stop_count == 1000:
+                    # sys.exit()
+                    # print("--------------END--------------")
+
+                    # cv2.destroyAllWindows() 
+
+                    # end_img=cv2.read('end.png')
+                    # cv2.imshow('Image', 'end.png')
+                    img1 = cv2.imread('/home/shyam/Desktop/img2/helmet/end_1.jpg')
+                    # fn, img1 = cap.read()
+                    cv2.imshow('Image', img1)
+                    cv2.waitKey(1000)
+                    cv2.destroyAllWindows() 
+            
+
             else:
-                cv2.imshow('Image',img)
+                # width = 1350
+                # height = 740 # keep original height
+                # dim = (width, height)
+                # cv2.namedWindow('Image')        # Create a named window
+
+                # cv2.moveWindow('Image', 0,0)
+                # resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+                resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
+                cv2.imshow('Image',resized)
+                if stop_count == 1000:
+                    # sys.exit()
+                    # print("--------------END--------------")
+
+                    # cv2.destroyAllWindows() 
+
+                    # end_img=cv2.read('end.png')
+                    # cv2.imshow('Image', 'end.png')
+                    img1 = cv2.imread('/home/shyam/Desktop/img2/helmet/end_1.jpg')
+                    # fn, img1 = cap.read()
+                    cv2.imshow('Image', img1)
+                    cv2.waitKey(1000)
+                    cv2.destroyAllWindows() 
+
+
 
             while pause_play==0:
                 if pause_play==1:
@@ -284,8 +608,8 @@ def fn_while_1():
             
             if stop_count == 1000:
                 # sys.exit()
-                print("--------------END--------------")
-               
+                # print("--------------END--------------")
+                
                 # cv2.destroyAllWindows() 
                 
                 # end_img=cv2.read('end.png')
@@ -296,9 +620,16 @@ def fn_while_1():
                 cv2.waitKey(1000)
                 cv2.destroyAllWindows() 
                 # t2.join()
-                
+                # if keyboard.is_pressed('q'):
+                #     x=input("hi")
+                #     print("-------------"+str(x))
                 # root.destroy()
                 # sys.exit()
+                # os.system(signal.SIGINT)
+                #GO out from here
+
+
+
                 break
                 
             
@@ -327,8 +658,13 @@ def fn_object_count(root):
     root.t1.place(x=52,y=50)
     
     if stop_count == 1000:
-        print("Line 325")
+        # print("Line 325")
         # sys.exit()
+        # while True:
+        #     if keyboard.is_pressed('q'):
+        #         x=input("hi")
+        #         print("-------------"+str(x))
+        #     print("hi")
         return
 
     # root.t0=Entry(font=("arial",18,"bold"),bg="white")
@@ -350,8 +686,16 @@ def fn_object_count(root):
     root.b6.place(x=275,y=590)
     root.b7=Button(root,width=10,text='helmet',command= fn_val_helmet, font=("arial",20,"bold"),bg="cadet blue")
     root.b7.place(x=155,y=650)
+    # root.b8=Button(root,width=10,text='exit',command= fn_val_stop, font=("arial",20,"bold"),bg="gray40")
+    # root.b8.place(x=155,y=320)
     root.b8=Button(root,width=10,text='exit',command= fn_val_stop, font=("arial",20,"bold"),bg="gray40")
-    root.b8.place(x=155,y=320)
+    root.b8.place(x=50,y=320)
+    
+    root.b10=Button(root,width=10,text='normal',command= fn_val_normal, font=("arial",20,"bold"),bg="gray40")
+    root.b10.place(x=45,y=395)
+
+    root.b11=Button(root,width=10,text='all',command= fn_val_normal_all, font=("arial",20,"bold"),bg="gray40")
+    root.b11.place(x=275,y=395)
     
     # root.b9["text"]="shyam"
     
@@ -378,14 +722,15 @@ def fn_place_count():
             # sys.exit()    
             # return
             return
-        if stop_count == 1000:
-            print("373")
+        # if stop_count == 1000:
+            # print("394")
         fn_put_count()
     return
 
 def fn_val_stop():
     global stop_count
     stop_count = 1000
+    print("----------END----------")
 
 
 def fn_val_person():
@@ -423,13 +768,20 @@ def fn_val_helmet( ):
     ck=6
     root.t1.delete(0,'end')
     root.t1.insert(END, "Number of "+ "helmet " )
+def fn_val_normal():
+    global ck
+    ck=10
+def fn_val_normal_all():
+    global ck
+    ck=7
+
 # def fn_t2_main():
 #     print("t2 to main is printing")
 
     
 def fn_while_2(): #main thread (without thread)
     global root
-    print("main is called")
+    # print("main is called")
     fn_object_count(root)
     root.mainloop() #Run your root
 
@@ -440,7 +792,7 @@ def fn_while_2(): #main thread (without thread)
 
 def print_triangle(num): 
     # while True:
-    print("tri")
+    # print("tri")
     fn_place_count()
     # return
 
@@ -460,11 +812,11 @@ def main():
     # t2.join()
     fn_while_2() # calling the main thread
     
-    print("Done!") 
+    # print("Done!") 
     # file_select.fn_close()
     # end.fn_end()
     # sys.exit()
-    # t1.join()
+    t1.join()
     # if t1.isAlive(): 
     #     print("t1")
     # if t2.isAlive():
